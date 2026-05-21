@@ -1,0 +1,287 @@
+/*
+ * Copyright (c) 2025
+ * SPDX-License-Identifier: MIT
+ *
+ * AK820 Max HE — hardware topology
+ * Board: nice!nano v2 (nRF52840)
+ *
+ * 84 hall-effect sensors in a 6-row × 15-column matrix.
+ *   Mux 1 (8-ch) → P0.31 / AIN7  — columns  0-7
+ *   Mux 2 (8-ch) → P0.29 / AIN5  — columns  8-14  (address 7 unused)
+ *   Address lines (shared): P0.08, P0.17, P0.20
+ *   Row enables:  P0.22, P0.24, P1.00, P0.11, P1.04, P1.06
+ *
+ * 75% ANSI layout — 6 rows × 15 columns, 84 active positions:
+ *   Row 3 col 12 | Row 4 col 14 | Row 5 cols 4,6,7,14  (unused)
+ */
+
+#include <dt-bindings/zmk/matrix_transform.h>
+#include <input/he_processors.dtsi>
+#include <physical_layouts.dtsi>
+
+/* ── ADC ─────────────────────────────────────────────────────────────────── */
+&adc {
+    status = "okay";
+    #address-cells = <1>;
+    #size-cells = <0>;
+
+    /* nRF52840 AIN7 = P0.31  →  mux 1 output */
+    adc_ch0: channel@0 {
+        reg = <0>;
+        zephyr,input-positive = <NRF_SAADC_AIN7>;
+        zephyr,gain            = "ADC_GAIN_1_6";
+        zephyr,reference       = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time =
+            <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 3)>;
+        zephyr,resolution = <12>;
+    };
+
+    /* nRF52840 AIN5 = P0.29  →  mux 2 output */
+    adc_ch1: channel@1 {
+        reg = <1>;
+        zephyr,input-positive = <NRF_SAADC_AIN5>;
+        zephyr,gain            = "ADC_GAIN_1_6";
+        zephyr,reference       = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time =
+            <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 3)>;
+        zephyr,resolution = <12>;
+    };
+};
+
+/* ── Signal-processor defaults ───────────────────────────────────────────── */
+&raw_sp {
+    matrix-size  = <6 15>;
+    working-area = <250 3050>;
+    /* Butterworth IIR coefficients (b0 b1 b2 a1 a2) — tune to hardware */
+    filter-coefficients =
+        <0x3ca485df 0x3d2485df 0x3ca485df 0x3f800000 0xbfc7cf71 0x3f242f9d>;
+};
+
+
+/* ── Root nodes ──────────────────────────────────────────────────────────── */
+/ {
+    chosen {
+        zmk,kscan           = &kscan_he;
+        zmk,physical-layout = &physical_layout0;
+    };
+
+    /* ── Physical layout (75% ANSI, approximate 100-unit grid) ─────────── */
+    physical_layout0: physical_layout_0 {
+        compatible   = "zmk,physical-layout";
+        display-name = "75% ANSI";
+        kscan        = <&kscan_he>;
+        transform    = <&default_transform>;
+        keys
+        /* Row 0 — F-row (15 keys, y=0) */
+        = <&key_physical_attrs 100 100    0   0 0 0 0>   /* ESC         */
+        , <&key_physical_attrs 100 100  100   0 0 0 0>   /* F1          */
+        , <&key_physical_attrs 100 100  200   0 0 0 0>   /* F2          */
+        , <&key_physical_attrs 100 100  300   0 0 0 0>   /* F3          */
+        , <&key_physical_attrs 100 100  400   0 0 0 0>   /* F4          */
+        , <&key_physical_attrs 100 100  500   0 0 0 0>   /* F5          */
+        , <&key_physical_attrs 100 100  600   0 0 0 0>   /* F6          */
+        , <&key_physical_attrs 100 100  700   0 0 0 0>   /* F7          */
+        , <&key_physical_attrs 100 100  800   0 0 0 0>   /* F8          */
+        , <&key_physical_attrs 100 100  900   0 0 0 0>   /* F9          */
+        , <&key_physical_attrs 100 100 1000   0 0 0 0>   /* F10         */
+        , <&key_physical_attrs 100 100 1100   0 0 0 0>   /* F11         */
+        , <&key_physical_attrs 100 100 1200   0 0 0 0>   /* F12         */
+        , <&key_physical_attrs 100 100 1300   0 0 0 0>   /* DEL         */
+        , <&key_physical_attrs 100 100 1400   0 0 0 0>   /* INS         */
+        /* Row 1 — number row (15 keys, y=100) */
+        , <&key_physical_attrs 100 100    0 100 0 0 0>   /* `~          */
+        , <&key_physical_attrs 100 100  100 100 0 0 0>   /* 1           */
+        , <&key_physical_attrs 100 100  200 100 0 0 0>   /* 2           */
+        , <&key_physical_attrs 100 100  300 100 0 0 0>   /* 3           */
+        , <&key_physical_attrs 100 100  400 100 0 0 0>   /* 4           */
+        , <&key_physical_attrs 100 100  500 100 0 0 0>   /* 5           */
+        , <&key_physical_attrs 100 100  600 100 0 0 0>   /* 6           */
+        , <&key_physical_attrs 100 100  700 100 0 0 0>   /* 7           */
+        , <&key_physical_attrs 100 100  800 100 0 0 0>   /* 8           */
+        , <&key_physical_attrs 100 100  900 100 0 0 0>   /* 9           */
+        , <&key_physical_attrs 100 100 1000 100 0 0 0>   /* 0           */
+        , <&key_physical_attrs 100 100 1100 100 0 0 0>   /* -           */
+        , <&key_physical_attrs 100 100 1200 100 0 0 0>   /* =           */
+        , <&key_physical_attrs 200 100 1300 100 0 0 0>   /* BSPC (2u)   */
+        , <&key_physical_attrs 100 100 1400 100 0 0 0>   /* PGUP        */
+        /* Row 2 — QWERTY (15 keys, y=200) */
+        , <&key_physical_attrs 150 100    0 200 0 0 0>   /* TAB (1.5u)  */
+        , <&key_physical_attrs 100 100  150 200 0 0 0>   /* Q           */
+        , <&key_physical_attrs 100 100  250 200 0 0 0>   /* W           */
+        , <&key_physical_attrs 100 100  350 200 0 0 0>   /* E           */
+        , <&key_physical_attrs 100 100  450 200 0 0 0>   /* R           */
+        , <&key_physical_attrs 100 100  550 200 0 0 0>   /* T           */
+        , <&key_physical_attrs 100 100  650 200 0 0 0>   /* Y           */
+        , <&key_physical_attrs 100 100  750 200 0 0 0>   /* U           */
+        , <&key_physical_attrs 100 100  850 200 0 0 0>   /* I           */
+        , <&key_physical_attrs 100 100  950 200 0 0 0>   /* O           */
+        , <&key_physical_attrs 100 100 1050 200 0 0 0>   /* P           */
+        , <&key_physical_attrs 100 100 1150 200 0 0 0>   /* [           */
+        , <&key_physical_attrs 100 100 1250 200 0 0 0>   /* ]           */
+        , <&key_physical_attrs 150 100 1350 200 0 0 0>   /* \  (1.5u)   */
+        , <&key_physical_attrs 100 100 1400 200 0 0 0>   /* PGDN        */
+        /* Row 3 — home row (14 keys, col 12 unused, y=300) */
+        , <&key_physical_attrs 175 100    0 300 0 0 0>   /* CAPS (1.75u)*/
+        , <&key_physical_attrs 100 100  175 300 0 0 0>   /* A           */
+        , <&key_physical_attrs 100 100  275 300 0 0 0>   /* S           */
+        , <&key_physical_attrs 100 100  375 300 0 0 0>   /* D           */
+        , <&key_physical_attrs 100 100  475 300 0 0 0>   /* F           */
+        , <&key_physical_attrs 100 100  575 300 0 0 0>   /* G           */
+        , <&key_physical_attrs 100 100  675 300 0 0 0>   /* H           */
+        , <&key_physical_attrs 100 100  775 300 0 0 0>   /* J           */
+        , <&key_physical_attrs 100 100  875 300 0 0 0>   /* K           */
+        , <&key_physical_attrs 100 100  975 300 0 0 0>   /* L           */
+        , <&key_physical_attrs 100 100 1075 300 0 0 0>   /* ;           */
+        , <&key_physical_attrs 100 100 1175 300 0 0 0>   /* '           */
+        /* col 12 (1275) is unused in this row */
+        , <&key_physical_attrs 225 100 1275 300 0 0 0>   /* ENTER(2.25u)*/
+        , <&key_physical_attrs 100 100 1400 300 0 0 0>   /* HOME        */
+        /* Row 4 — bottom alpha (14 keys, col 14 unused, y=400) */
+        , <&key_physical_attrs 225 100    0 400 0 0 0>   /* LSFT(2.25u) */
+        , <&key_physical_attrs 100 100  225 400 0 0 0>   /* Z           */
+        , <&key_physical_attrs 100 100  325 400 0 0 0>   /* X           */
+        , <&key_physical_attrs 100 100  425 400 0 0 0>   /* C           */
+        , <&key_physical_attrs 100 100  525 400 0 0 0>   /* V           */
+        , <&key_physical_attrs 100 100  625 400 0 0 0>   /* B           */
+        , <&key_physical_attrs 100 100  725 400 0 0 0>   /* N           */
+        , <&key_physical_attrs 100 100  825 400 0 0 0>   /* M           */
+        , <&key_physical_attrs 100 100  925 400 0 0 0>   /* ,           */
+        , <&key_physical_attrs 100 100 1025 400 0 0 0>   /* .           */
+        , <&key_physical_attrs 100 100 1125 400 0 0 0>   /* /           */
+        , <&key_physical_attrs 175 100 1225 400 0 0 0>   /* RSFT(1.75u) */
+        , <&key_physical_attrs 100 100 1300 400 0 0 0>   /* UP          */
+        , <&key_physical_attrs 100 100 1400 400 0 0 0>   /* END         */
+        /* Row 5 — modifier row (11 keys, cols 4,6,7,14 unused, y=500) */
+        , <&key_physical_attrs 125 100    0 500 0 0 0>   /* LCTL(1.25u) */
+        , <&key_physical_attrs 125 100  125 500 0 0 0>   /* LGUI(1.25u) */
+        , <&key_physical_attrs 125 100  250 500 0 0 0>   /* LALT(1.25u) */
+        , <&key_physical_attrs 100 100  375 500 0 0 0>   /* MENU        */
+        /* col 4 (475) unused */
+        , <&key_physical_attrs 625 100  475 500 0 0 0>   /* SPC  (6.25u)*/
+        /* cols 6,7 unused */
+        , <&key_physical_attrs 100 100 1100 500 0 0 0>   /* RALT        */
+        , <&key_physical_attrs 100 100 1200 500 0 0 0>   /* FN          */
+        , <&key_physical_attrs 125 100 1275 500 0 0 0>   /* RCTL(1.25u) */
+        , <&key_physical_attrs 100 100 1300 500 0 0 0>   /* LEFT        */
+        , <&key_physical_attrs 100 100 1350 500 0 0 0>   /* DOWN        */
+        , <&key_physical_attrs 100 100 1400 500 0 0 0>   /* RIGHT       */
+        ;
+    };
+
+    /* ── Matrix transform: RC(row,col) → keymap position 0-81 (82 keys) ──
+     * Interleaved column mapping: g0→even cols, g1→odd cols.
+     * Skipped positions (no sensor populated): (0,13) (3,12) (4,1)
+     *                                          (5,3) (5,4) (5,5) (5,7) (5,8)
+     */
+    default_transform: keymap_transform_0 {
+        compatible = "zmk,matrix-transform";
+        rows    = <6>;
+        columns = <15>;
+        map = <
+            /* Row 0 — 14 cols (skip col 13) */
+            RC(0, 0) RC(0, 1) RC(0, 2) RC(0, 3) RC(0, 4) RC(0, 5) RC(0, 6)
+            RC(0, 7) RC(0, 8) RC(0, 9) RC(0,10) RC(0,11) RC(0,12) RC(0,14)
+            /* Row 1 — all 15 cols */
+            RC(1, 0) RC(1, 1) RC(1, 2) RC(1, 3) RC(1, 4) RC(1, 5) RC(1, 6)
+            RC(1, 7) RC(1, 8) RC(1, 9) RC(1,10) RC(1,11) RC(1,12) RC(1,13) RC(1,14)
+            /* Row 2 — all 15 cols */
+            RC(2, 0) RC(2, 1) RC(2, 2) RC(2, 3) RC(2, 4) RC(2, 5) RC(2, 6)
+            RC(2, 7) RC(2, 8) RC(2, 9) RC(2,10) RC(2,11) RC(2,12) RC(2,13) RC(2,14)
+            /* Row 3 — 14 cols (skip col 12, Enter 2.25u over cols 12-13) */
+            RC(3, 0) RC(3, 1) RC(3, 2) RC(3, 3) RC(3, 4) RC(3, 5) RC(3, 6)
+            RC(3, 7) RC(3, 8) RC(3, 9) RC(3,10) RC(3,11) RC(3,13) RC(3,14)
+            /* Row 4 — 14 cols (skip col 1, LShift 2.25u over cols 0-1) */
+            RC(4, 0) RC(4, 2) RC(4, 3) RC(4, 4) RC(4, 5) RC(4, 6) RC(4, 7)
+            RC(4, 8) RC(4, 9) RC(4,10) RC(4,11) RC(4,12) RC(4,13) RC(4,14)
+            /* Row 5 — 10 cols (skip 3,4,5,7,8 under 6.25u spacebar) */
+            RC(5, 0) RC(5, 1) RC(5, 2) RC(5, 6) RC(5, 9)
+            RC(5,10) RC(5,11) RC(5,12) RC(5,13) RC(5,14)
+        >;
+    };
+
+    /* ── Hall-effect kscan driver ─────────────────────────────────────── */
+    kscan_he: kscan_he {
+        compatible = "he,kscan-multiplexer-rows";
+        wakeup-source;
+
+        /* Mux address lines: A0=P0.17, A1=P0.08, A2=P0.06 */
+        address-gpios
+            = <&gpio0 17 GPIO_ACTIVE_HIGH>
+            , <&gpio0  8 GPIO_ACTIVE_HIGH>
+            , <&gpio0  6 GPIO_ACTIVE_HIGH>
+            ;
+
+        /* Mux output-enable (active-high), shared by both 8-channel muxes — P1.01 */
+        mux-enable-gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
+
+        /* Row enable lines — active-LOW (driven low when row is selected) */
+        row-gpios
+            = <&gpio0 22 GPIO_ACTIVE_LOW>
+            , <&gpio0 24 GPIO_ACTIVE_LOW>
+            , <&gpio1  0 GPIO_ACTIVE_LOW>
+            , <&gpio0 11 GPIO_ACTIVE_LOW>
+            , <&gpio1  4 GPIO_ACTIVE_LOW>
+            , <&gpio1  6 GPIO_ACTIVE_LOW>
+            ;
+
+        address-to-read-delay = <5>;   /* µs — adjust for mux propagation */
+        row-to-address-delay   = <5>;   /* µs — adjust for sensor settle time */
+        wait-period-idle       = <1>;   /* ms — between scans when no key active */
+        wait-period-press      = <1>;   /* ms — between scans when something is moving */
+        resolution             = <12>;
+        // calibrate;                   /* uncomment to log raw ADC values */
+
+        /* Unpopulated sensor sites — driver suppresses events for these */
+        skip-positions = <
+            0 13    /* under top-right blank */
+            3 12    /* under 2.25u Enter */
+            4  1    /* under 2.25u LShift */
+            5  3    /* under 6.25u Spacebar */
+            5  4
+            5  5
+            5  7
+            5  8
+        >;
+
+        /* Global calibration defaults — replace after running calibrate mode */
+        default-calibration-min = <1200>;   /* slightly below worst-case pressed (~1259) */
+        default-calibration-max = <2350>;   /* slightly above worst-case rest (~2330) */
+        default-deadzone-top    = <250>;
+        default-deadzone-bottom = <250>;
+
+        /* Group 0: mux 1 → AIN7 (P0.31), even columns 0,2,4,6,8,10,12,14 */
+        mux1_group: mux1 {
+            io-channels      = <&adc 0>;
+            address-range-min = <0>;
+            address-range-max = <7>;
+            column-offset    = <0>;
+            column-stride    = <2>;
+            switch-height    = <3300>;
+            /* switch-pressed-is-higher; */
+        };
+
+        /* Group 1: mux 2 → AIN5 (P0.29), odd columns 1,3,5,7,9,11,13 */
+        mux2_group: mux2 {
+            io-channels      = <&adc 1>;
+            address-range-min = <0>;
+            address-range-max = <6>;   /* addr 7 → col 15, out of range */
+            column-offset    = <1>;
+            column-stride    = <2>;
+            switch-height    = <3300>;
+            /* switch-pressed-is-higher; */
+        };
+    };
+
+    /* ── Input processing chain ─────────────────────────────────────────── */
+
+    /* he_input_listener processes INPUT_EV_HE events before the keymap */
+    he_listener: he_input_listener {
+        compatible = "he,input-listener";
+        status     = "okay";
+        device     = <&kscan_he>;
+        /* Global processor: noise filter */
+        input-processors = <&raw_sp>;
+        /* Press/release is handled directly in the kscan driver.
+         * Add per-layer processors here for rapid-trigger, etc. */
+    };
+};

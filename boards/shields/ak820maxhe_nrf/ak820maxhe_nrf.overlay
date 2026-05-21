@@ -1,0 +1,63 @@
+/*
+ * Copyright (c) 2025
+ * SPDX-License-Identifier: MIT
+ *
+ * AK820 Max HE — nice!nano v2 board overlay
+ *
+ * All GPIO pin assignments are already declared inline in ak820maxhe_nrf.dtsi
+ * using raw gpio0/gpio1 port references, so no extra pin overrides are needed
+ * here. This file is the right place to:
+ *   • Override per-key calibration after running calibrate mode
+ *   • Tune timing / deadzone values
+ *   • Enable/disable listeners
+ *   • Override polyfit coefficients for your specific switches
+ */
+
+#include "ak820maxhe_nrf.dtsi"
+
+/* ── Per-key calibration ─────────────────────────────────────────────────
+ * After flashing with  calibrate;  uncommented in kscan_he, hold each key
+ * at rest and note the raw min, then bottom it out and note the raw max.
+ * Paste the values as child nodes of the relevant group, indexed by
+ * mux address (0-7 for mux1, 0-6 for mux2).
+ *
+ * Example (replace with real measurements):
+ *
+ * &mux1_group {
+ *     key_r0_a0 { calibration-min = <2100>; calibration-max = <3250>; };
+ *     key_r0_a1 { calibration-min = <2080>; calibration-max = <3240>; };
+ *     // ... addresses 0-7
+ * };
+ * &mux2_group {
+ *     key_r0_a0 { calibration-min = <2060>; calibration-max = <3220>; };
+ *     // ... addresses 0-6
+ * };
+ *
+ * Until calibrated, default-calibration-min/max = 0 means the driver
+ * returns mid-travel (uncalibrated) and rapid-trigger / adjustable-actuation
+ * will not work correctly.
+ * ─────────────────────────────────────────────────────────────────────── */
+
+/* ── Release pins claimed by default peripherals ─────────────────────────
+ * On nice!nano v2 the default board DTS gives:
+ *   P0.06 → uart0 TX     (collides with mux A2)
+ *   P0.08 → uart0 RX     (collides with mux A1)
+ *   P0.17 → i2c0 SDA     (collides with mux A0)
+ *   P0.20 → i2c0 SCL
+ *   P0.11/P0.24/P1.04 → spi0/spi1
+ * Disabling them frees the pads so our GPIO config actually drives them.
+ * ─────────────────────────────────────────────────────────────────────── */
+&uart0 { status = "disabled"; };
+&i2c0  { status = "disabled"; };
+&spi0  { status = "disabled"; };
+&spi1  { status = "disabled"; };
+
+/* Enable the input listener */
+&he_listener {
+    status = "okay";
+};
+
+/* Enable the raw signal processor */
+&raw_sp {
+    sample-div = <1>;
+};

@@ -1,0 +1,13 @@
+if SHIELD_AK820MAXHE_NRF
+
+# Name must be less than 16 characters long!
+config ZMK_KEYBOARD_NAME
+    default "AK820 Max HE"
+
+config ADC
+    default y
+
+config GPIO
+    default y
+
+endif

@@ -1,0 +1,102 @@
+/*
+ * Copyright (c) 2025
+ * SPDX-License-Identifier: MIT
+ *
+ * AK820 Max HE keymap — 75% ANSI, 84 keys, 2 layers
+ *
+ * Matrix positions (84 keys in transform order):
+ *
+ *  Row 0  — F-row  (positions  0-14)
+ *  Row 1  — Num    (positions 15-29)
+ *  Row 2  — QWERTY (positions 30-44)
+ *  Row 3  — Home   (positions 45-58, col 12 skipped)
+ *  Row 4  — Shift  (positions 59-72, col 14 skipped)
+ *  Row 5  — Ctrl   (positions 73-83, cols 4,6,7,14 skipped)
+ *
+ *  Physical layout (top to bottom):
+ *  ┌─────┬──┬──┬──┬──┬──┬──┬──┬──┬──┬───┬───┬───┬─────┬─────┐
+ *  │ ESC │F1│F2│F3│F4│F5│F6│F7│F8│F9│F10│F11│F12│ DEL │ INS │
+ *  ├─────┼──┼──┼──┼──┼──┼──┼──┼──┼──┼───┼───┼───┼─────┼─────┤
+ *  │  `  │ 1│ 2│ 3│ 4│ 5│ 6│ 7│ 8│ 9│  0│  -│  =│BSPC │PGUP │
+ *  ├─────┼──┼──┼──┼──┼──┼──┼──┼──┼──┼───┼───┼───┼─────┼─────┤
+ *  │ TAB │ Q│ W│ E│ R│ T│ Y│ U│ I│ O│  P│  [│  ]│  \  │PGDN │
+ *  ├─────┼──┼──┼──┼──┼──┼──┼──┼──┼──┼───┼───┼───┼─────┼─────┤
+ *  │CAPS │ A│ S│ D│ F│ G│ H│ J│ K│ L│  ;│  '│   │ENTER│HOME │
+ *  ├─────┼──┼──┼──┼──┼──┼──┼──┼──┼──┼───┼───┼───┼─────┼─────┤
+ *  │LSHFT│ Z│ X│ C│ V│ B│ N│ M│ ,│ .│  /│   │RSH│ UP  │ END │
+ *  ├─────┼──┼──┼──┼──┼──┴──┴──┴──┴──┴───┼───┼───┼─────┼─────┤
+ *  │LCTL │LG│LA│MNU│  │      SPC        │RAL│FN │RCTL │← ↓ →│
+ *  └─────┴──┴──┴───┴──┴─────────────────┴───┴───┴─────┴─────┘
+ */
+
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/bt.h>
+
+/ {
+    keymap {
+        compatible = "zmk,keymap";
+
+        /* ── Layer 0: Default QWERTY ─────────────────────────────────── */
+        default_layer {
+            display-name = "QWERTY";
+            bindings = <
+                /* Row 0 */
+                &kp ESC   &kp F1    &kp F2    &kp F3    &kp F4    &kp F5
+                &kp F6    &kp F7    &kp F8    &kp F9    &kp F10   &kp F11
+                &kp F12   &kp DEL   &kp DEL
+                /* Row 1 */
+                &kp GRAVE &kp N1    &kp N2    &kp N3    &kp N4    &kp N5
+                &kp N6    &kp N7    &kp N8    &kp N9    &kp N0    &kp MINUS
+                &kp EQUAL &kp HOME  &kp BSPC
+                /* Row 2 */
+                &kp TAB   &kp Q     &kp W     &kp E     &kp R     &kp T
+                &kp Y     &kp U     &kp I     &kp O     &kp P     &kp LBKT
+                &kp RBKT  &kp PG_UP &kp BSLH
+                /* Row 3 (14 keys — col 12 unused) */
+                &kp CAPS  &kp A     &kp S     &kp D     &kp F     &kp G
+                &kp H     &kp J     &kp K     &kp L     &kp SEMI  &kp APOS
+                &kp PG_DN &kp RET
+                /* Row 4 (14 keys — col 14 unused) */
+                &kp LSHFT &kp Z     &kp X     &kp C     &kp V     &kp B
+                &kp N     &kp M     &kp COMMA &kp DOT   &kp FSLH  &kp RSHFT
+                &kp END   &kp UP
+                /* Row 5 (11 keys — cols 4,6,7,14 unused) */
+                &kp LCTRL &kp LGUI  &kp LALT  &kp K_APP
+                &kp SPACE
+                &kp RALT  &mo 1     &kp DOWN  &kp RCTRL &kp LEFT  &kp RIGHT
+            >;
+        };
+
+        /* ── Layer 1: Function / system ─────────────────────────────── */
+        fn_layer {
+            display-name = "Fn";
+            bindings = <
+                /* Row 0 — transparent F-keys, top-row becomes media/BT */
+                &trans    &kp C_MUTE  &kp C_VOL_DN &kp C_VOL_UP &kp C_PREV &kp C_PP
+                &kp C_NEXT &trans    &trans    &trans    &trans    &trans
+                &trans    &trans    &trans
+                /* Row 1 */
+                &trans    &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &bt BT_SEL 4
+                &trans    &trans    &trans    &trans    &trans    &trans
+                &trans    &bt BT_CLR &trans
+                /* Row 2 */
+                &trans    &trans    &trans    &trans    &trans    &trans
+                &trans    &trans    &trans    &trans    &trans    &trans
+                &trans    &trans    &trans
+                /* Row 3 */
+                &trans    &trans    &trans    &trans    &trans    &trans
+                &trans    &trans    &trans    &trans    &trans    &trans
+                &trans    &trans
+                /* Row 4 */
+                &trans    &trans    &trans    &trans    &trans    &trans
+                &trans    &trans    &trans    &trans    &trans    &trans
+                &kp PG_UP &kp PG_DN
+                /* Row 5 */
+                &trans    &trans    &trans    &trans
+                &trans
+                &trans    &trans    &trans    &kp HOME  &trans    &kp END
+            >;
+        };
+    };
+};

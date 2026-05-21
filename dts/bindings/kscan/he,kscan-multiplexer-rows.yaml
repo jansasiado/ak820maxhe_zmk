@@ -1,0 +1,167 @@
+# Copyright (c) 2025
+# SPDX-License-Identifier: MIT
+#
+# Extends he,kscan-multiplexer with row-enable GPIO support.
+# Scanning sequence: for each row GPIO (enabled one at a time), cycle through
+# all mux addresses and read every ADC channel (group) simultaneously.
+# Reports INPUT_EV_HE events with INPUT_HE_RC(row, col) coordinates.
+
+description: >
+  Hall-effect kscan controller with analog multiplexer and row-enable GPIOs.
+  Produces INPUT_EV_HE analog events in micrometers of switch height.
+
+compatible: "he,kscan-multiplexer-rows"
+
+include: kscan.yaml
+
+properties:
+  address-gpios:
+    description: Mux address GPIOs ordered LSB to MSB
+    type: phandle-array
+    required: true
+
+  row-gpios:
+    description: Row-enable GPIOs, one per row, asserted active-high one at a time
+    type: phandle-array
+    required: true
+
+  mux-enable-gpios:
+    description: >
+      Optional mux output-enable pin(s). Asserted (set active) once at init and
+      held continuously. Use this for the EN/INH pin of analog multiplexers.
+    type: phandle-array
+
+  address-to-read-delay:
+    description: Microseconds to wait after setting mux address before ADC read
+    type: int
+    default: 5
+
+  row-to-address-delay:
+    description: Microseconds to wait after enabling a row before starting address scan
+    type: int
+    default: 5
+
+  wait-period-idle:
+    description: Milliseconds between full scan cycles when no activity detected
+    type: int
+    default: 5
+
+  wait-period-press:
+    description: Milliseconds between full scan cycles when activity detected
+    type: int
+    default: 1
+
+  resolution:
+    type: int
+    default: 12
+    enum: [8, 10, 12]
+
+  default-calibration-min:
+    description: Default raw ADC floor (key fully released). Set to 0 to skip polynomial mapping.
+    type: int
+    default: 0
+
+  default-calibration-max:
+    description: Default raw ADC ceiling (key fully pressed). Set to 0 to skip polynomial mapping.
+    type: int
+    default: 0
+
+  default-deadzone-top:
+    description: Micrometers from top of travel before events start
+    type: int
+    default: 250
+
+  default-deadzone-bottom:
+    description: Micrometers from bottom of travel before events stop
+    type: int
+    default: 250
+
+  polyfit:
+    description: >
+      Polynomial coefficients mapping normalised ADC (0-1) to normalised height (0-1).
+      Stored as 32-bit IEEE-754 floats in hex, highest-degree coefficient first.
+      Defaults are calibrated for Gateron low-profile magnetic jade pro.
+    type: array
+    default:
+      - 0x408b2298
+      - 0xc1167de4
+      - 0x40fed831
+      - 0xc02b2742
+      - 0x3f404977
+      - 0x3bd693e5
+
+  kscan-forwarder:
+    description: kscan-forwarder device that receives final press/release events
+    type: phandle
+
+  calibrate:
+    description: >
+      When set, print raw ADC values to serial instead of sending input events.
+      Use this to determine calibration-min/max for each key.
+    type: boolean
+
+  skip-positions:
+    description: >
+      Flat list of (row col) pairs. Any sensor at one of these matrix positions
+      is read but the resulting input event is suppressed. Use for unpopulated
+      sensor sites whose floating ADC inputs would otherwise look like presses.
+      Example: skip-positions = <0 14  3 12  4 1>; skips (0,14), (3,12), (4,1).
+    type: array
+
+child-binding:
+  description: Per-ADC-channel group (one child per mux output / ADC input)
+  properties:
+    io-channels:
+      description: ADC channel connected to this mux's output
+      type: phandle-array
+      required: true
+
+    address-range-min:
+      description: First mux address (column offset) in this group (inclusive)
+      type: int
+      required: true
+
+    address-range-max:
+      description: Last mux address (column offset) in this group (inclusive)
+      type: int
+      required: true
+
+    switch-height:
+      description: Full travel distance of the switch in micrometers
+      type: int
+      default: 3300
+
+    switch-pressed-is-higher:
+      description: Set if the ADC value increases when the key is pressed
+      type: boolean
+
+    column-offset:
+      description: >
+        Matrix column index that mux address (range_min) maps to. For sequential
+        column layouts this is the cumulative width of previous groups; for
+        interleaved layouts (e.g. two muxes alternating) set it to 0 / 1.
+      type: int
+      default: 0
+
+    column-stride:
+      description: >
+        Number of matrix columns to advance per increment of mux address.
+        Set to 1 for sequential layouts, 2 for two muxes interleaved by column.
+      type: int
+      default: 1
+
+  child-binding:
+    description: Per-key calibration override (optional, indexed by mux address within the group)
+    properties:
+      calibration-min:
+        type: int
+        default: 0
+      calibration-max:
+        type: int
+        default: 0
+      deadzone-top:
+        type: int
+        default: 250
+      deadzone-bottom:
+        type: int
+        default: 250

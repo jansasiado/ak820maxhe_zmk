@@ -1,0 +1,9 @@
+if SHIELD_AK820MAXHE_NRF
+
+config HE_KSCAN_MULTIPLEXER_ROWS
+    bool
+    default y
+    select ADC
+    select GPIO
+
+endif

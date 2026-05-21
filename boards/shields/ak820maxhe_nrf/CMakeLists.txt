@@ -1,0 +1,1 @@
+zephyr_library_sources(src/kscan_multiplexer_rows.c)

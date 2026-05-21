@@ -1,0 +1,130 @@
+/*
+ * Copyright (c) 2025 cr3eperall
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+#include "partial_gauss.dtsi"
+#include <behaviors/gamepad_button.dtsi>
+
+&default_transform {
+    col-offset = <5>;
+};
+
+
+&kscan_gpio {
+    col-gpios
+        = <&nano_33_ble 3 GPIO_ACTIVE_HIGH>
+        , <&nano_33_ble 4 GPIO_ACTIVE_HIGH>
+        , <&nano_33_ble 5 GPIO_ACTIVE_HIGH>
+        , <&nano_33_ble 6 GPIO_ACTIVE_HIGH>
+        , <&nano_33_ble 9 GPIO_ACTIVE_HIGH>
+        ;
+};
+
+&kscan_adc_top{
+    first {
+        io-channels = <&adc 2>;
+        // deadzone-top = <>;
+        // deadzone-bottom = <>;
+        calibration-min = <2097>;
+        calibration-max = <3238>;
+    };
+    second {
+        io-channels = <&adc 1>;
+        // deadzone-top = <>;
+        // deadzone-bottom = <>;
+        calibration-min = <2094>;
+        calibration-max = <3248>;
+    };
+    third {
+        io-channels = <&adc 0>;
+        // deadzone-top = <>;
+        // deadzone-bottom = <>;
+        calibration-min = <2173>;
+        calibration-max = <3292>;
+    };
+};
+&kscan_adc_bot{
+    first {
+        io-channels = <&adc 5>;
+        // deadzone-top = <>;
+        // deadzone-bottom = <>;
+        calibration-min = <2160>;
+        calibration-max = <3260>;
+    };
+    second {
+        io-channels = <&adc 4>;
+        // deadzone-top = <>;
+        // deadzone-bottom = <>;
+        calibration-min = <2128>;
+        calibration-max = <3268>;
+    };
+    third {
+        io-channels = <&adc 3>;
+        // deadzone-top = <>;
+        // deadzone-bottom = <>;
+        calibration-min = <2154>;
+        calibration-max = <3216>;
+    };
+};
+
+&kscan_selector{
+    input-gpios
+            = 
+              <&gpio1  3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio1 10 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            ;
+};
+
+&raw_sp{
+    sample-div = <12>;
+};
+
+// zmk,input-split is enabled but does nothing on the peripheral side
+// it is only needed to make DT_FOREACH_STATUS_OKAY(zmk_input_split, INPUT_SPLIT_CHARS) 
+// generate the GATT characteristic in `zmk/app/src/split/bluetooth/service.c:196`
+//  he,input split is the one that actually sends the data
+&input_split{
+    device = <&he_none>; //mock device that doesn't generate inpus
+//     // input-processors = <
+//     //     &raw_sp
+//     //     &he_mat_offset 5 0
+//     //     &he_trans
+//     // >;
+};
+
+&split_inputs {
+    #address-cells = <1>;
+    #size-cells = <0>;
+    
+    he_input_split: he_input_split@0 {
+        compatible = "he,input-split";
+        reg = <0>;
+        device = <&kscan_adc>;
+        input-processors = <
+            &raw_sp
+            &he_mat_offset 5 0
+            &he_trans
+        >;
+    };
+};
+
+&gp_fw{
+    status="disabled";
+};
+&mouse_fw{
+    status="disabled";
+};
+&he_pass{
+    status="disabled";
+};
+&rt_pass{
+    status="disabled";
+};
+&socd_d{
+    status="disabled";
+};
+&gp_btn{
+    status="disabled";
+};

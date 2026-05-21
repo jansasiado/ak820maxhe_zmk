@@ -1,0 +1,95 @@
+/*
+ * Copyright (c) 2025 cr3eperall
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+#include "partial_gauss.dtsi"
+    
+&kscan_gpio {
+    col-gpios
+        = <&nano_33_ble 9 GPIO_ACTIVE_HIGH>
+        , <&nano_33_ble 6 GPIO_ACTIVE_HIGH>
+        , <&nano_33_ble 5 GPIO_ACTIVE_HIGH>
+        , <&nano_33_ble 4 GPIO_ACTIVE_HIGH>
+        , <&nano_33_ble 3 GPIO_ACTIVE_HIGH>
+        ;
+};
+
+&kscan_adc_top{
+    first {
+        io-channels = <&adc 0>;
+        // deadzone-top = <>;
+        // deadzone-bottom = <>;
+        calibration-min = <2095>;
+        calibration-max = <3286>;
+    };
+    second {
+        io-channels = <&adc 1>;
+        // deadzone-top = <>;
+        // deadzone-bottom = <>;
+        calibration-min = <2067>;
+        calibration-max = <3245>;
+    };
+    third {
+        io-channels = <&adc 2>;
+        // deadzone-top = <>;
+        // deadzone-bottom = <>;
+        calibration-min = <2024>;
+        calibration-max = <3226>;
+    };
+};
+&kscan_adc_bot{
+    first {
+        io-channels = <&adc 3>;
+        // deadzone-top = <>;
+        // deadzone-bottom = <>;
+        calibration-min = <2072>;
+        calibration-max = <3232>;
+    };
+    second {
+        io-channels = <&adc 4>;
+        // deadzone-top = <>;
+        // deadzone-bottom = <>;
+        calibration-min = <2193>;
+        calibration-max = <3278>;
+    };
+    third {
+        io-channels = <&adc 5>;
+        // deadzone-top = <>;
+        // deadzone-bottom = <>;
+        calibration-min = <2037>;
+        calibration-max = <3273>;
+    };
+};
+
+&kscan_selector{
+    input-gpios
+            = 
+              <&gpio1 10 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio1  3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            ;
+};
+
+&central_listener{
+    status = "okay";
+};
+
+&peripheral_listener{
+    status = "okay";
+};
+&mouse_fw_listener{
+    status = "okay";
+};
+
+&raw_sp {
+    sample-div = <1>;
+};
+
+&he_transform {
+    status="okay";
+};
+
+&he_keymap {
+    status = "okay";
+};
